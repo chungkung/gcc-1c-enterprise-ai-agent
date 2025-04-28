@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCC - CC7 AI Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logo.ico') }}">
+    <!-- PWA Manifest Link -->
+    <link rel="manifest" href="/static/manifest.json">
+    <!-- Optional: Theme color for browser UI -->
+    <meta name="theme-color" content="#007bff">
+</head>
+<body>
+    <!-- Main container for layout -->
+    <div class="app-layout">
+
+        <!-- History Sidebar -->
+        <div class="history-sidebar">
+            <!-- NEW Collapse button -->
+            <button id="collapse-sidebar-button" title="折叠/展开侧边栏 / Свернуть/развернуть боковую панель">
+                &lt; <!-- Using HTML entity for < -->
+            </button>
+            <button id="new-chat-button" title="新聊天 / Новый чат">+ 新聊天</button>
+            <ul id="history-list">
+                <!-- History items will be populated by JS -->
+            </ul>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="chat-area">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h1>GCC - CC7 AI Agent</h1>
+                </div>
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Initial message might be added by JS -->
+                </div>
+                <div class="chat-input-container">
+                    <!-- File context indicator will be inserted here by JS -->
+                    <textarea id="user-input" placeholder="请输入您的问题... / Введите ваш вопрос..." rows="1"></textarea>
+                    <button id="file-upload-button" class="upload-button" title="文件上传 / Загрузить файл">📎</button>
+                    <button id="image-upload-button" class="upload-button" title="图片上传 / Загрузить изображение">🖼️</button>
+                    <button id="audio-upload-button" class="upload-button" title="音频上传 / Загрузить аудио">🎤</button>
+                    <button id="send-button" title="发送 / Отправить">发送</button>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- End app-layout -->
+
+    <!-- Hidden file inputs -->
+    <input type="file" id="file-input-generic" style="display: none;">
+    <input type="file" id="file-input-image" accept="image/*" style="display: none;">
+    <input type="file" id="file-input-audio" accept="audio/*" style="display: none;">
+
+    <!-- Define JS variable BEFORE including main.js -->
+    <script>
+        const initialAssistantMessage = {{ initial_message | tojson }};
+        console.log("[Inline Script] initialAssistantMessage defined as:", initialAssistantMessage);
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register("{{ url_for('static', filename='service-worker.js') }}")
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html> 

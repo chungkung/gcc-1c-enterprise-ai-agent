@@ -1,0 +1,4 @@
+flask>=3.0 # Using >= to allow patch updates
+zhipuai>=2.0
+gunicorn
+PyPDF2>=3.0 

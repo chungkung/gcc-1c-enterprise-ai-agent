@@ -1,0 +1,523 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #1a1a1a; /* Set a solid background for the page */
+    color: #111; /* 全局字体黑色 */
+    min-height: 100vh;
+    overflow: hidden; /* Prevent body scroll */
+}
+
+.app-layout {
+    display: flex;
+    height: 100vh;
+    position: relative; /* <-- Add relative positioning */
+    overflow: hidden; /* Prevent potential overflow issues */
+}
+
+.history-sidebar {
+    width: 220px;
+    min-width: 40px;
+    background: #222;
+    color: #fff;
+    transition: width 0.3s;
+    position: relative;
+    z-index: 2;
+}
+
+#new-chat-button {
+    display: block;
+    width: 100%;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    background-color: #343541;
+    color: #ffffff !important; /* Force white color */
+    border: 1px solid #565869;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.9rem;
+    font-weight: 600; /* Make font semi-bold */
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.5); /* Add subtle glow */
+    transition: opacity 0.2s ease 0.1s; /* 稍微延迟隐藏内容 */
+}
+#new-chat-button:hover {
+    background-color: #40414f;
+}
+
+#history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto; /* Enable scrolling for history */
+    flex-grow: 1; /* Allow list to take remaining space */
+    scrollbar-width: thin;
+    scrollbar-color: #565869 #343541;
+    transition: opacity 0.2s ease 0.1s; /* 稍微延迟隐藏内容 */
+}
+
+#history-list li {
+    padding: 10px 8px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #ffffff !important; /* Force white color */
+    font-size: 0.9rem;
+    font-weight: 600; /* Make font semi-bold */
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.5); /* Add subtle glow */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative; /* For delete button positioning */
+    border: 1px solid transparent; /* Placeholder for hover/active */
+}
+
+#history-list li:hover {
+    background-color: #40414f; /* Lighter background on hover */
+    border-color: #4d4e5a;
+}
+
+#history-list li.active {
+    background-color: #40414f;
+    border-color: #6a6c7b;
+    font-weight: bold;
+}
+
+#history-list .delete-session-button {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #ff8a8a;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 2px 5px;
+    display: none; /* Initially hidden */
+    line-height: 1;
+}
+#history-list li:hover .delete-session-button {
+    display: inline-block; /* Show on hover */
+}
+#history-list .delete-session-button:hover {
+    color: #ff4d4d;
+}
+
+.chat-area {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    /* height: 100vh; */ /* <-- Remove this */
+    overflow: hidden; /* Make sure this prevents .chat-area scrolling */
+    background-color: #1a1a1a;
+}
+
+.chat-container {
+    flex-grow: 1; /* 让容器填充 chat-area */
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    /* height: 100%; */ /* <-- 移除固定高度，让 flex-grow 控制 */
+    background-image: url('/static/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* <-- 添加 fixed 使背景不随内容滚动 */
+    position: relative;
+    overflow: hidden; /* *** Crucial: Keep this *** */
+}
+
+.chat-container::before { /* Overlay */
+    content: '';
+    position: fixed; /* 使用 fixed 而不是 absolute */
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(26, 26, 26, 0.85);
+    z-index: 1;
+    pointer-events: none; /* 允许点击穿透 */
+}
+
+.chat-header, .chat-messages, .chat-input-container {
+    position: relative;
+    z-index: 2;
+    background-color: transparent;
+    flex-shrink: 0; /* 默认不收缩 */
+}
+
+.chat-header {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-messages {
+    flex-grow: 1;
+    flex-basis: 0; /* 关键: 从零开始计算高度 */
+    height: 0; /* 关键: 强制使用 flex-grow 计算高度 */
+    overflow-y: auto !important; /* 强制启用垂直滚动 */
+    padding: 1rem;
+    min-height: 0; /* 保留这个 flexbox 修复 */
+    max-height: calc(100vh - 160px); /* 防止消息区域过大 */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.1);
+    z-index: 10; /* 提高层级以确保可滚动 */
+}
+
+.chat-input-container {
+    flex-shrink: 0;
+    padding: 0.8rem 1rem;
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping */
+    gap: 0.5rem;
+    align-items: flex-end;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(44, 44, 44, 0.8); /* Background for the input bar */
+}
+
+/* --- Styles for file context indicator --- */
+.file-context-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    order: -1; /* Display indicator above the textarea */
+    margin-bottom: 5px;
+    background-color: rgba(0, 132, 255, 0.2); /* Light blue background */
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    color: #e0e0e0;
+}
+
+.file-context-indicator span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 10px;
+}
+
+.file-context-indicator button {
+    background: none;
+    border: none;
+    color: #ff8a8a; /* Light red color */
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 5px;
+    line-height: 1;
+}
+.file-context-indicator button:hover {
+    color: #ff4d4d; /* Brighter red on hover */
+}
+/* --- END NEW --- */
+
+#user-input {
+    flex: 1;
+    /* Increase initial height - using min-height is often better than rows */
+    min-height: 72px; /* Approx 3-4 lines */
+    max-height: 200px; /* Increase max height */
+    padding: 0.8rem;
+    border-radius: 15px;
+    background-color: rgba(26, 26, 26, 0.8);
+    color: white;
+    resize: none;
+    font-size: 1rem;
+    overflow-y: auto;
+    line-height: 1.4;
+    border: 1px solid #3d3d3d;
+}
+
+#user-input:focus {
+    outline: none;
+    border-color: #0084ff;
+    background-color: rgba(36, 36, 36, 0.9);
+}
+
+/* General button styling */
+.chat-input-container button {
+    padding: 0.7rem 1rem; /* Slightly adjusted padding */
+    background-color: #0084ff;
+    color: white;
+    border: none;
+    border-radius: 15px; /* More rounded buttons */
+    cursor: pointer;
+    font-size: 1rem;
+    /* height: fit-content; */ /* Remove or comment out fit-content height */
+    line-height: 1.4; /* Match input line-height */
+    align-self: flex-end; /* <-- Key change: Align button bottom to container bottom */
+    transition: background-color 0.2s ease; /* Smooth hover effect */
+    flex-shrink: 0; /* Prevent shrinking */
+    min-height: 40px; /* Set a min-height roughly matching single-line input */
+    display: inline-flex; /* Optional: help center content */
+    align-items: center; /* Optional: help center content */
+    justify-content: center; /* Optional: help center content */
+}
+
+.chat-input-container button:hover {
+    background-color: #0073e6;
+}
+
+.chat-input-container button:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+}
+
+/* Specific styling for upload buttons */
+.upload-button {
+    font-size: 1.2rem; /* Make icons slightly larger */
+    padding: 0.6rem 0.8rem; /* Adjust padding for icons */
+    background-color: #4a4a4a; /* Different background for upload buttons */
+    min-height: 40px; /* Ensure same min-height */
+    /* align-self: flex-end; Inherited or set explicitly if needed */
+}
+
+.upload-button:hover {
+    background-color: #5a5a5a;
+}
+
+#send-button {
+    /* Keep specific styles for send button if needed */
+    min-width: 60px; /* Ensure send button has some width */
+    text-align: center;
+    min-height: 40px; /* Ensure same min-height */
+     /* align-self: flex-end; Inherited or set explicitly if needed */
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+     border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Style for the collapse button - Position relative to app-layout */
+#collapse-sidebar-button {
+    position: absolute;
+    top: 10px;
+    right: -15px;
+    z-index: 10;
+    background: #fff;
+    color: #222;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: right 0.3s;
+}
+
+.app-layout.sidebar-collapsed #collapse-sidebar-button {
+    right: -15px;
+}
+
+/* --- Styles for Collapsed State --- */
+.app-layout.sidebar-collapsed .history-sidebar {
+    width: 40px;
+}
+
+/* NEW: Force chat area width when sidebar is collapsed */
+.app-layout.sidebar-collapsed .chat-area {
+    width: 100%; /* Ensure chat area takes full width */
+}
+
+/* Hide content (excluding button - now handled by opacity on parent) */
+.app-layout.sidebar-collapsed .history-sidebar > *:not(#collapse-sidebar-button) {
+    opacity: 0; /* Ensure content fades out */
+    pointer-events: none;
+}
+
+/* Position and style button when collapsed */
+.app-layout.sidebar-collapsed #collapse-sidebar-button {
+    transform: scaleX(-1); /* Flip the arrow */
+    left: 5px; /* <-- Move button near the left edge when collapsed */
+    opacity: 1 !important; /* Ensure visible */
+    pointer-events: auto !important; /* Ensure clickable */
+    visibility: visible !important; /* Ensure visible */
+}
+
+/* --- 折叠状态样式结束 --- */
+
+.chat-area {
+    flex-grow: 1;
+    /* ... 其他 chat-area 样式 ... */
+    /* 可以添加 transition 让聊天区域平滑扩展，但这通常不是必需的 */
+    /* transition: margin-left 0.3s ease; */ /* 如果 sidebar 不是 flex item，可能需要调整 margin */
+}
+
+/* 防止容器滚动，只让消息区域滚动 */
+.chat-area, .chat-container {
+    overflow: hidden !important; /* 强制禁止这些容器滚动 - Restoring this */
+}
+
+/* 聊天消息动画 */
+.message {
+    margin-bottom: 18px;
+    padding: 10px 16px;
+    border-radius: 15px;
+    max-width: 75%;
+    word-wrap: break-word;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.4s forwards;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    position: relative;
+}
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 聊天消息字体黑色 */
+.message .message-content {
+    color: #111 !important;
+}
+
+.user-message {
+    background-color: #0084ff !important;
+    color: #fff !important;
+    margin-left: auto;
+    border-bottom-right-radius: 3px;
+}
+.user-message .message-content {
+    color: #fff !important;
+}
+
+.assistant-message {
+    background-color: #e9e9eb;
+    color: #111 !important;
+    margin-right: auto;
+    border-bottom-left-radius: 3px;
+}
+.assistant-message .message-content {
+    color: #111 !important;
+}
+
+/* 聊天消息分隔线 */
+.message + .message {
+    margin-top: 10px;
+    border-top: 1px solid #ececec;
+    padding-top: 18px;
+}
+
+/* 代码块复制按钮 */
+.code-block {
+    position: relative;
+    background: #23272e !important;
+    color: #e6e6e6 !important;
+    border-radius: 6px;
+    padding: 12px 16px 12px 16px;
+    margin-top: 8px;
+    font-family: 'Fira Mono', 'Consolas', monospace;
+    overflow-x: auto;
+    font-size: 1em;
+    border: 1.5px solid #444;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+.code-block .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: #444;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9em;
+    padding: 2px 8px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    z-index: 2;
+}
+.code-block .copy-btn:hover {
+    opacity: 1;
+    background: #0084ff;
+}
+
+/* 响应式适配手机端 */
+@media (max-width: 600px) {
+    .app-layout {
+        flex-direction: column;
+        height: 100vh;
+    }
+    .history-sidebar {
+        width: 100vw;
+        min-width: 0;
+        height: 48px;
+        position: fixed;
+        left: 0; top: 0; right: 0;
+        z-index: 100;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 0 8px;
+        border-radius: 0;
+    }
+    #history-list {
+        display: none;
+    }
+    #collapse-sidebar-button, #new-chat-button {
+        position: static;
+        margin: 0 4px;
+        width: auto;
+        height: 36px;
+        min-width: 36px;
+        border-radius: 18px;
+    }
+    .chat-area {
+        margin-top: 48px;
+        width: 100vw;
+        min-width: 0;
+    }
+    .chat-container {
+        width: 100vw;
+        min-width: 0;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0;
+    }
+    .chat-header {
+        font-size: 1.1em;
+        padding: 0.5em 0.2em;
+    }
+    .chat-messages {
+        padding: 0.5em 0.2em;
+        max-height: calc(100vh - 180px);
+    }
+    .chat-input-container {
+        padding: 0.5em 0.2em;
+        gap: 0.2em;
+    }
+    #user-input {
+        min-height: 48px;
+        font-size: 1em;
+    }
+    .message {
+        max-width: 95vw;
+        font-size: 1em;
+    }
+    .code-block {
+        font-size: 0.95em;
+        padding: 10px 8px 10px 8px;
+    }
+} 

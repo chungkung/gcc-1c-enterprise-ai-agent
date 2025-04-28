@@ -1,0 +1,22 @@
+{
+  "short_name": "小G助手",
+  "name": "GCC AI助手 小G",
+  "description": "七化建GCC项目人工智能助手",
+  "icons": [
+    {
+      "src": "/static/images/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/static/images/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#FFFFFF",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#007bff"
+} 
